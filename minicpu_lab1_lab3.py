@@ -321,7 +321,7 @@ def assemble_and_run_demo(array: List[int], trace: bool = True) -> Tuple[List[in
 
 if __name__ == "__main__":
     # Example: sum of [5, -2, 10, 7] = 20
-    program, state = assemble_and_run_demo([5, -2, 10, 7], trace=True)
+    program, state = assemble_and_run_demo([5, -2, 112, 7], trace=True)
     print("\n--- Machine code (hex) ---")
     print(" ".join(f"{b:02X}" for b in program))
     print("\n--- Final CPU state ---")
