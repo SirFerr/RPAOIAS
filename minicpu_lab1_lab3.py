@@ -1,18 +1,3 @@
-
-"""
-MiniCPU + Assembler (Labs #1 and #3)
-
-Student tail digits: 32 -> binary 0b100000
-- 2 LSB bits: 00 => zero-address (stack) instruction format
-- 3rd bit: 0 => Harvard architecture (separate code/data memory)
-- 4th bit: 0 => task = sum of array
-
-This file provides:
-  1) A zero-address stack CPU emulator (Harvard).
-  2) A simple assembler for it.
-  3) A demo program that sums an array and prints the result.
-"""
-
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Optional
 
@@ -46,13 +31,6 @@ from typing import List, Dict, Tuple, Optional
 #   0x0D JMP              - PC += signed offset in next byte
 #   0x0E LT               - (a,b) -> push(1 if a<b else 0)
 #   0x0F OUT              - pop -> ACC and print (demo IO)
-#
-# To keep it still zero-address, the only way to read sequential array is NEXT.
-# We will preload IP with array base, and preload data memory with array items.
-#
-# The assembler supports textual mnemonics and a simple label system.
-# Jumps accept byte offsets computed by the assembler (relative, signed).
-#
 
 OPCODES = {
     "NOP":  0x00,
