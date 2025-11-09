@@ -1,13 +1,5 @@
-# -----------------------------
-# ISA (Zero-address / stack)
-# -----------------------------
+
 # Each instruction is 1 byte opcode; no operands.
-# Memory is separate for code and data (Harvard).
-# Registers:
-#   PC  - program counter
-#   SP  - stack pointer (index into stack list; top is the end)
-#   IP  - data index pointer used by NEXT/STORE_NEXT (implicit address)
-#   ACC - accumulator (only used by OUT for pretty demo; others operate on stack)
 
 OPCODES = {
     "NOP":  0x00,

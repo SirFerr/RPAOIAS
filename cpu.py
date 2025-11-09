@@ -2,6 +2,16 @@ from dataclasses import dataclass, field
 from typing import List
 from isa import OPCODES
 
+# -----------------------------
+# ISA (Zero-address / stack)
+# -----------------------------
+# Memory is separate for code and data (Harvard).
+# Registers:
+#   PC  - program counter
+#   SP  - stack pointer (index into stack list; top is the end)
+#   IP  - data index pointer used by NEXT/STORE_NEXT (implicit address)
+#   ACC - accumulator (only used by OUT for pretty demo; others operate on stack)
+
 @dataclass
 class CPUState:
     pc: int = 0

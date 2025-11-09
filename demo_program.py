@@ -5,6 +5,7 @@ from cpu import MiniCPU, CPUState
 # -----------------------------------------
 # Demo program (sum of array) in assembly
 # -----------------------------------------
+
 DEMO_ASM = """
 ; Invariant: [sum, N]
 ; Init: IP=0; N=NEXT; sum=0; then SWAP -> [sum, N]
