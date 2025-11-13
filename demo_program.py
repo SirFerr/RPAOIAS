@@ -2,47 +2,39 @@ from typing import List, Tuple
 from assembler import Assembler
 from cpu import MiniCPU, CPUState
 
-# -----------------------------------------
-# Demo program (sum of array) in assembly
-# -----------------------------------------
 
 DEMO_ASM = """
-; Invariant: [sum, N]
-; Init: IP=0; N=NEXT; sum=0; then SWAP -> [sum, N]
-
 PUSH0
 SETIP
 
-NEXT       ; N
-PUSH0      ; sum
-SWAP       ; [sum, N]
+NEXT       ; получить N — количество элементов
+PUSH0      ; sum = 0
+SWAP       ; привести стек к виду [sum, N]
 
 loop:
 DUP
-JZ end
+JZ end     ; если N == 0 → переход к метке end
 
 ; sum += NEXT
 SWAP        ; [N, sum]
-NEXT        ; [N, sum, x]
-SWAP        ; [N, x, sum]
-ADD         ; [N, sum+x]
+NEXT        ; взять следующий элемент массива -> [N, sum, x]
+SWAP        ; переставить -> [N, x, sum]
+ADD         ; сложить sum + x -> [N, sum+x]
 
 ; N = N - 1
-SWAP        ; [sum+x, N]
+SWAP        ; переставить -> [sum+x, N]
 PUSH1
-SUB         ; [sum+x, N-1]  (invariant [sum, N])
-JMP loop
+SUB         ; уменьшить N на 1 -> [sum+x, N-1]  (инвариант [sum, N])
+JMP loop    ; перейти к началу цикла
 
 end:
-POP
-OUT
-HALT
+POP         ; удалить N из стека
+OUT         ; вывести сумму
+HALT        ; остановка программы
 """
 
+
 def assemble_and_run_demo(array: List[int], trace: bool = True) -> Tuple[List[int], CPUState]:
-    """
-    array: list of ints to sum. We'll place length at data[0], then elements.
-    """
     data = [len(array)] + array[:]
     asm = Assembler()
     code = asm.assemble(DEMO_ASM)

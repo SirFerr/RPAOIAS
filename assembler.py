@@ -3,12 +3,11 @@ from isa import OPCODES, to_signed_byte
 
 class Assembler:
     def __init__(self):
-        self.labels: Dict[str, int] = {}
-        self.code: List[int] = []
+        self.labels: Dict[str, int] = {}   # Словарь для хранения меток и их адресов
+        self.code: List[int] = []          # Список байт с результирующим машинным кодом
 
     @staticmethod
     def _clean(line: str) -> str:
-        # strip comments (start with ';' or '#')
         for c in (';', '#'):
             if c in line:
                 line = line[:line.index(c)]
@@ -16,7 +15,7 @@ class Assembler:
 
     def assemble(self, src: str) -> List[int]:
         lines = [self._clean(x) for x in src.splitlines()]
-        # Pass 1: collect labels
+        # Проход 1: собираем метки
         pc = 0
         for line in lines:
             if not line:
@@ -24,22 +23,22 @@ class Assembler:
             if line.endswith(':'):
                 label = line[:-1].strip()
                 if not label:
-                    raise ValueError("Empty label")
+                    raise ValueError("Пустая метка")
                 if label in self.labels:
-                    raise ValueError(f"Duplicate label: {label}")
+                    raise ValueError(f"Дублирование метки: {label}")
                 self.labels[label] = pc
                 continue
 
             parts = line.split()
             mnem = parts[0].upper()
             if mnem in ("JZ", "JMP"):
-                pc += 2  # opcode + 1-byte offset
+                pc += 2  # команда + 1 байт смещения
             else:
                 if mnem not in OPCODES:
-                    raise ValueError(f"Unknown mnemonic {mnem}")
+                    raise ValueError(f"Неизвестная мнемоника {mnem}")
                 pc += 1
 
-        # Pass 2: emit code
+        # Проход 2: формируем машинный код
         self.code = []
         pc = 0
         for line in lines:
@@ -49,11 +48,11 @@ class Assembler:
             mnem = parts[0].upper()
             if mnem in ("JZ", "JMP"):
                 if len(parts) != 2:
-                    raise ValueError(f"{mnem} needs a label")
+                    raise ValueError(f"{mnem} требует указания метки")
                 target = parts[1]
                 if target not in self.labels:
-                    raise ValueError(f"Unknown label: {target}")
-                # relative offset from next byte after offset
+                    raise ValueError(f"Неизвестная метка: {target}")
+                # относительное смещение от следующего байта после текущей команды
                 next_pc = pc + 2
                 off = self.labels[target] - next_pc
                 self.code.append(OPCODES[mnem])

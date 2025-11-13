@@ -2,43 +2,35 @@ from dataclasses import dataclass, field
 from typing import List
 from isa import OPCODES
 
-# -----------------------------
-# ISA (Zero-address / stack)
-# -----------------------------
-# Memory is separate for code and data (Harvard).
-# Registers:
-#   PC  - program counter
-#   SP  - stack pointer (index into stack list; top is the end)
-#   IP  - data index pointer used by NEXT/STORE_NEXT (implicit address)
-#   ACC - accumulator (only used by OUT for pretty demo; others operate on stack)
-
 @dataclass
 class CPUState:
-    pc: int = 0
-    ip: int = 0
-    acc: int = 0
-    stack: List[int] = field(default_factory=list)
+    pc: int = 0      # счётчик команд
+    ip: int = 0      # указатель данных
+    acc: int = 0     # аккумулятор, только для OUT
+    stack: List[int] = field(default_factory=list)  # стек
 
 class MiniCPU:
     def __init__(self, code: List[int], data: List[int], trace: bool = True):
-        self.code = code[:]          # instruction memory (bytes)
-        self.data = data[:]          # data memory (ints)
+        self.code = code[:]          # память инструкций (байты)
+        self.data = data[:]          # память данных (целые числа)
         self.state = CPUState()
         self.trace = trace
-        self.cycles = 0              # for "one change per cycle" accounting
+        self.cycles = 0              # счётчик тактов (для учёта изменений за шаг)
 
-    # Helpers
     def push(self, v: int):
+        # положить значение в стек
         self.state.stack.append(int(v))
 
     def pop(self) -> int:
+        # снять значение с вершины стека
         if not self.state.stack:
-            raise RuntimeError("Stack underflow")
+            raise RuntimeError("Переполнение стека (stack underflow)")
         return self.state.stack.pop()
 
     def fetch(self) -> int:
+        # Получение следующей инструкции
         if self.state.pc < 0 or self.state.pc >= len(self.code):
-            raise RuntimeError(f"PC out of code range: {self.state.pc}")
+            raise RuntimeError(f"PC вышел за границы кода: {self.state.pc}")
         opcode = self.code[self.state.pc]
         self.state.pc += 1
         return opcode
@@ -52,7 +44,6 @@ class MiniCPU:
                 print(f"PC={pc_before:02X} OP={opcode:02X} {extra} | "
                       f"IP={self.state.ip} ACC={self.state.acc} STACK={self.state.stack}")
 
-        # Execute
         if opcode == OPCODES["NOP"]:
             dbg("NOP")
 
@@ -89,7 +80,7 @@ class MiniCPU:
 
         elif opcode == OPCODES["NEXT"]:
             if not (0 <= self.state.ip < len(self.data)):
-                raise RuntimeError(f"IP out of data range: {self.state.ip}")
+                raise RuntimeError(f"IP вне диапазона данных: {self.state.ip}")
             v = self.data[self.state.ip]
             self.state.ip += 1
             self.push(v); dbg(f"NEXT -> push {v}")
@@ -97,25 +88,24 @@ class MiniCPU:
         elif opcode == OPCODES["SETIP"]:
             v = self.pop()
             if not (0 <= v <= len(self.data)):
-                raise RuntimeError(f"SETIP to invalid index {v}")
+                raise RuntimeError(f"SETIP в неверный индекс {v}")
             self.state.ip = v; dbg(f"SETIP {v}")
 
         elif opcode == OPCODES["JZ"]:
-            # Next byte is signed offset
             off = self.fetch()
             if off >= 128: off -= 256
             cond = self.pop()
             if cond == 0:
                 self.state.pc += off
-                dbg(f"JZ taken, off={off}")
+                dbg(f"JZ выполнен, смещение={off}")
             else:
-                dbg(f"JZ not-taken, off={off}")
+                dbg(f"JZ не выполнен, смещение={off}")
 
         elif opcode == OPCODES["JMP"]:
             off = self.fetch()
             if off >= 128: off -= 256
             self.state.pc += off
-            dbg(f"JMP off={off}")
+            dbg(f"JMP смещение={off}")
 
         elif opcode == OPCODES["LT"]:
             b,a = self.pop(), self.pop()
@@ -128,7 +118,7 @@ class MiniCPU:
             print(f"[IO] OUT = {v}")
 
         else:
-            raise RuntimeError(f"Unknown opcode {opcode:#x} at PC {pc_before}")
+            raise RuntimeError(f"Неизвестный код операции {opcode:#x} по адресу PC {pc_before}")
 
         self.cycles += 1
         return True
