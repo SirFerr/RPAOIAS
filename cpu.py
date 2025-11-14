@@ -43,9 +43,8 @@ class MiniCPU:
             if self.trace:
                 print(f"PC={pc_before:02X} OP={opcode:02X} {extra} | "
                       f"IP={self.state.ip} ACC={self.state.acc} STACK={self.state.stack}")
-
-        if opcode == OPCODES["NOP"]:
-            dbg("NOP")
+        if opcode == OPCODES["NOPE"]:
+            dbg("NOPE")
 
         elif opcode == OPCODES["HALT"]:
             dbg("HALT")
@@ -116,6 +115,32 @@ class MiniCPU:
             self.state.acc = v
             dbg(f"OUT {v}")
             print(f"[IO] OUT = {v}")
+
+        elif opcode == OPCODES["LOAD"]:
+            # Получить по произвольному адресу
+            addr = self.pop()
+            if not (0 <= addr < len(self.data)):
+                raise RuntimeError(f"LOAD: wrong address({addr})")
+            v = self.data[addr]
+            self.push(v)
+            dbg(f"LOAD addr={addr} -> {v}")
+
+        elif opcode == OPCODES["PUSH"]:
+            # Положить произовльное число в стек
+            imm = self.fetch()
+            if imm >= 128:
+                imm -= 256
+            self.push(imm)
+            dbg(f"PUSH {imm}")
+
+
+        elif opcode == OPCODES["STORE"]:
+            val = self.pop()
+            addr = self.pop()
+            if not (0 <= addr < len(self.data)):
+                raise RuntimeError(f"STORE: wrong address({addr})")
+            self.data[addr] = val
+            dbg(f"STORE addr={addr} <- {val}")
 
         else:
             raise RuntimeError(f"Неизвестный код операции {opcode:#x} по адресу PC {pc_before}")

@@ -31,6 +31,8 @@ class Assembler:
 
             parts = line.split()
             mnem = parts[0].upper()
+            if mnem == "PUSH":
+                pc += 2
             if mnem in ("JZ", "JMP"):
                 pc += 2  # команда + 1 байт смещения
             else:
@@ -46,6 +48,7 @@ class Assembler:
                 continue
             parts = line.split()
             mnem = parts[0].upper()
+
             if mnem in ("JZ", "JMP"):
                 if len(parts) != 2:
                     raise ValueError(f"{mnem} требует указания метки")
@@ -58,6 +61,16 @@ class Assembler:
                 self.code.append(OPCODES[mnem])
                 self.code.append(to_signed_byte(off))
                 pc += 2
+            elif mnem == "PUSH":
+                if len(parts) != 2:
+                    raise ValueError("PUSH требует аргумент")
+                imm = int(parts[1])
+                if not -128 <= imm <= 127:
+                    raise ValueError("Число вне диапазона байта")
+                self.code.append(OPCODES["PUSH"])
+                self.code.append(imm & 0xFF)
+                pc += 2
+
             else:
                 self.code.append(OPCODES[mnem])
                 pc += 1

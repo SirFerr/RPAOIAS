@@ -32,12 +32,22 @@ POP         ; удалить N из стека
 OUT         ; вывести сумму
 HALT        ; остановка программы
 """
+LOAD_TEST = """
+PUSH 5
+PUSH 10
+STORE
+
+PUSH 5     
+LOAD       
+OUT
+HALT
+"""
 
 
-def assemble_and_run_demo(array: List[int], trace: bool = True) -> Tuple[List[int], CPUState]:
-    data = [len(array)] + array[:]
+def assemble_and_run_demo(array: List[int], trace: bool = True, program = "") -> Tuple[List[int], CPUState]:
+    data = array[:]
     asm = Assembler()
-    code = asm.assemble(DEMO_ASM)
+    code = asm.assemble(program)
     cpu = MiniCPU(code, data, trace=trace)
     final_state = cpu.run()
     return code, final_state
